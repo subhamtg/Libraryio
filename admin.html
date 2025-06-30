@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📤 Admin Upload – Subham E-Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-purple-800 min-h-screen text-white flex items-center justify-center p-4">
+
+  <div class="bg-white bg-opacity-10 p-8 rounded-xl backdrop-blur-md max-w-md w-full shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-center">📤 Upload New eBook</h2>
+
+    <form id="uploadForm" enctype="multipart/form-data" class="space-y-4">
+      <input type="text" name="title" placeholder="Book Title" required class="w-full p-3 rounded text-black" />
+      <input type="text" name="department" placeholder="Department (e.g., CSE, BCom)" required class="w-full p-3 rounded text-black" />
+      <input type="file" name="file" accept=".pdf" required class="w-full p-3 rounded bg-white text-black" />
+      <button type="submit" class="w-full p-3 bg-green-400 text-black font-bold rounded hover:bg-green-300">
+        Upload PDF
+      </button>
+      <div id="message" class="text-center mt-4 font-semibold"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      message.textContent = "Uploading...";
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('/api/admin-upload', {
+          method: 'POST',
+          body: formData
+        });
+        const text = await res.text();
+        message.textContent = text.includes("✅") ? "✅ Upload successful!" : "❌ " + text;
+      } catch (err) {
+        message.textContent = "❌ Upload failed.";
+      }
+    });
+  </script>
+
+</body>
+</html>
