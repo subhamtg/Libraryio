@@ -9,38 +9,44 @@
     .fade {
       transition: all 0.5s ease-in-out;
     }
+    .hidden {
+      display: none;
+    }
+    .glow:hover {
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-pink-300 via-purple-400 to-indigo-500 min-h-screen flex items-center justify-center p-4">
 
-  <div class="bg-white bg-opacity-10 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md text-center text-white fade">
-    <h1 class="text-3xl font-bold mb-4">📚 Welcome to Subham E-Library</h1>
+  <div class="bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-md text-center text-white fade">
+    <h1 class="text-4xl font-extrabold mb-6 tracking-tight">📚 Subham E-Library</h1>
 
-    <!-- Toggle Buttons -->
+    <!-- Switch Buttons -->
     <div class="flex justify-center mb-6 gap-4">
-      <button onclick="showForm('login')" class="bg-white text-indigo-700 px-4 py-1 rounded-full font-semibold hover:bg-indigo-100 transition-all">Login</button>
-      <button onclick="showForm('signup')" class="bg-white text-pink-700 px-4 py-1 rounded-full font-semibold hover:bg-pink-100 transition-all">Sign Up</button>
+      <button onclick="showForm('login')" class="bg-white text-indigo-700 px-5 py-2 rounded-full font-semibold hover:bg-indigo-100 glow transition-all">Login</button>
+      <button onclick="showForm('signup')" class="bg-white text-pink-700 px-5 py-2 rounded-full font-semibold hover:bg-pink-100 glow transition-all">Sign Up</button>
     </div>
 
-    <!-- Toast Message -->
+    <!-- Toast -->
     <div id="toast" class="text-sm text-yellow-200 mb-4 hidden"></div>
 
     <!-- Login Form -->
     <form id="loginForm" class="space-y-4 fade">
-      <input name="email" type="email" placeholder="Email" required class="w-full px-4 py-2 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-      <input name="password" type="password" placeholder="Password" required class="w-full px-4 py-2 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded">Login</button>
+      <input name="email" type="email" placeholder="Email" required class="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 ring-indigo-300" />
+      <input name="password" type="password" placeholder="Password" required class="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 ring-indigo-300" />
+      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-full font-semibold transition-all">🔐 Login</button>
     </form>
 
     <!-- Signup Form -->
     <form id="signupForm" class="space-y-4 hidden fade">
-      <input name="name" type="text" placeholder="Full Name" required class="w-full px-4 py-2 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-pink-400" />
-      <input name="email" type="email" placeholder="Email" required class="w-full px-4 py-2 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-pink-400" />
-      <input name="password" type="password" placeholder="Password" required class="w-full px-4 py-2 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-pink-400" />
-      <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 rounded">Sign Up</button>
+      <input name="name" type="text" placeholder="Full Name" required class="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 ring-pink-300" />
+      <input name="email" type="email" placeholder="Email" required class="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 ring-pink-300" />
+      <input name="password" type="password" placeholder="Password" required class="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 ring-pink-300" />
+      <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 rounded-full font-semibold transition-all">✅ Sign Up</button>
     </form>
 
-    <p class="text-sm text-white mt-6">Built by Subham Das © 2025</p>
+    <p class="text-sm text-white mt-6 opacity-70">© 2025 Subham Das. All rights reserved.</p>
   </div>
 
   <script>
@@ -49,16 +55,13 @@
     const toast = document.getElementById('toast');
 
     function showForm(form) {
+      toast.classList.add('hidden');
       if (form === 'login') {
         loginForm.classList.remove('hidden');
         signupForm.classList.add('hidden');
-        toast.textContent = '';
-        toast.classList.add('hidden');
       } else {
         signupForm.classList.remove('hidden');
         loginForm.classList.add('hidden');
-        toast.textContent = '';
-        toast.classList.add('hidden');
       }
     }
 
@@ -70,16 +73,15 @@
 
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
-      // TODO: Send login request to backend
-      showToast("🔐 Login request sent...");
+      showToast("🔐 Logging in...");
+      // TODO: Fetch API for login
     };
 
     signupForm.onsubmit = async (e) => {
       e.preventDefault();
-      // TODO: Send signup request to backend
-      showToast("✅ Signup request sent...");
+      showToast("✅ Signing up...");
+      // TODO: Fetch API for signup
     };
   </script>
-
 </body>
 </html>
