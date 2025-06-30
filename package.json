@@ -1,0 +1,30 @@
+{
+  "name": "e-library-telegram-cloud",
+  "version": "1.0.0",
+  "description": "E-Library with user login/signup, Supabase DB, and Telegram file uploads",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js",
+    "build:css": "tailwindcss -i ./styles/tailwind.css -o ./public/output.css --watch"
+  },
+  "keywords": [
+    "supabase",
+    "telegram",
+    "tailwindcss",
+    "file-upload",
+    "nodejs"
+  ],
+  "author": "Subham Das",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
+    "bcryptjs": "^2.4.3",
+    "busboy": "^1.6.0",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
