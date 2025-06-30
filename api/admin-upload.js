@@ -1,23 +1,32 @@
 const { createClient } = require('@supabase/supabase-js');
 const busboy = require('busboy');
-const fs = require('fs');
+const crypto = require('crypto');
 
+// Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return res.status(405).send("Method Not Allowed");
+  if (req.method !== 'POST') {
+    return res.status(405).send('❌ Method Not Allowed');
+  }
 
   const bb = busboy({ headers: req.headers });
-  const fields = {};
+
   let fileBuffer = Buffer.alloc(0);
   let fileName = '';
+  let mimeType = '';
+  const fields = {};
 
   bb.on('file', (name, file, info) => {
-    fileName = info.filename;
-    file.on('data', data => {
+    const { filename, mimeType: type } = info;
+    mimeType = type;
+    const ext = filename.split('.').pop();
+    fileName = crypto.randomUUID() + '.' + ext;
+
+    file.on('data', (data) => {
       fileBuffer = Buffer.concat([fileBuffer, data]);
     });
   });
@@ -28,25 +37,39 @@ module.exports = async (req, res) => {
 
   bb.on('close', async () => {
     const { title, department } = fields;
-    if (!title || !department || !fileName) {
-      return res.status(400).send("❌ All fields required");
+
+    if (!title || !department || !fileBuffer.length) {
+      return res.status(400).send('❌ Missing required fields or file');
     }
 
-    const { data, error } = await supabase.storage
-      .from('ebooks')
-      .upload(`books/${Date.now()}-${fileName}`, fileBuffer, {
-        contentType: 'application/pdf',
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('ebooks') // 📁 Your Supabase bucket name
+      .upload(`pdfs/${fileName}`, fileBuffer, {
+        contentType: mimeType
       });
 
-    if (error) return res.status(500).send("❌ Upload Failed: " + error.message);
+    if (uploadError) {
+      return res.status(500).send("❌ Upload failed: " + uploadError.message);
+    }
 
-    const { error: dbError } = await supabase
-      .from('library')
-      .insert([{ title, department, file_url: data.path }]);
+    const fileUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/ebooks/pdfs/${fileName}`;
 
-    if (dbError) return res.status(500).send("❌ DB Insert Failed");
+    // Insert into ebooks table
+    const { error: insertErr } = await supabase
+      .from('ebooks')
+      .insert({
+        title,
+        department,
+        url: fileUrl
+      });
 
-    res.status(200).send("✅ Upload successful");
+    if (insertErr) {
+      return res.status(500).send("❌ Database insert error: " + insertErr.message);
+    }
+
+    return res.status(200).send("✅ eBook uploaded successfully!");
   });
 
   req.pipe(bb);
