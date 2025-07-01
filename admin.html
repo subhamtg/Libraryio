@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>📤 Admin Upload – Subham E-Library</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>📤 Admin Panel - Subham E-Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-purple-800 min-h-screen text-white flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-gray-800 via-purple-700 to-indigo-900 min-h-screen text-white flex items-center justify-center p-4">
 
-  <div class="bg-white bg-opacity-10 p-8 rounded-xl backdrop-blur-md max-w-md w-full shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-center">📤 Upload New eBook</h2>
+  <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-lg">
+    <h2 class="text-2xl font-bold mb-6 text-center">📤 Admin Upload Panel</h2>
 
-    <form id="uploadForm" enctype="multipart/form-data" class="space-y-4">
-      <input type="text" name="title" placeholder="Book Title" required class="w-full p-3 rounded text-black" />
-      <input type="text" name="department" placeholder="Department (e.g., CSE, BCom)" required class="w-full p-3 rounded text-black" />
-      <input type="file" name="file" accept=".pdf" required class="w-full p-3 rounded bg-white text-black" />
-      <button type="submit" class="w-full p-3 bg-green-400 text-black font-bold rounded hover:bg-green-300">
-        Upload PDF
-      </button>
-      <div id="message" class="text-center mt-4 font-semibold"></div>
+    <form id="uploadForm" class="space-y-4">
+      <input type="text" name="title" placeholder="Book Title" required class="w-full px-4 py-2 rounded bg-white text-black" />
+      <textarea name="description" placeholder="Book Description" rows="3" class="w-full px-4 py-2 rounded bg-white text-black"></textarea>
+      <input type="file" name="file" accept="application/pdf" required class="w-full text-white" />
+      <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded">📚 Upload Book</button>
     </form>
+
+    <div id="status" class="mt-4 text-center text-sm"></div>
   </div>
 
   <script>
-    const form = document.getElementById('uploadForm');
-    const message = document.getElementById('message');
+    const uploadForm = document.getElementById('uploadForm');
+    const statusDiv = document.getElementById('status');
 
-    form.addEventListener('submit', async (e) => {
+    uploadForm.onsubmit = async (e) => {
       e.preventDefault();
-      message.textContent = "Uploading...";
-      const formData = new FormData(form);
+      const formData = new FormData(uploadForm);
+      statusDiv.textContent = '⏳ Uploading...';
 
       try {
         const res = await fetch('/api/admin-upload', {
           method: 'POST',
           body: formData
         });
-        const text = await res.text();
-        message.textContent = text.includes("✅") ? "✅ Upload successful!" : "❌ " + text;
-      } catch (err) {
-        message.textContent = "❌ Upload failed.";
-      }
-    });
-  </script>
 
+        const text = await res.text();
+        statusDiv.textContent = text.includes('✅') ? '✅ ' + text : '❌ ' + text;
+      } catch (err) {
+        statusDiv.textContent = '❌ Error uploading book';
+      }
+    };
+  </script>
 </body>
 </html>
