@@ -1,7 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const busboy = require('busboy');
-const { v4: uuidv4 } = require('uuid');
-const mime = require('mime-types');
+const { Readable } = require('stream');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -10,65 +9,58 @@ const supabase = createClient(
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
-    return res.status(405).send("Method Not Allowed");
+    return res.status(405).send("❌ Method Not Allowed");
   }
 
   const bb = busboy({ headers: req.headers });
   const fields = {};
   let fileBuffer = Buffer.alloc(0);
-  let fileName = '';
-  let mimeType = '';
-
-  bb.on('file', (name, file, info) => {
-    fileName = info.filename;
-    mimeType = info.mimeType;
-
-    file.on('data', (data) => {
-      fileBuffer = Buffer.concat([fileBuffer, data]);
-    });
-  });
+  let filename = '';
 
   bb.on('field', (name, val) => {
     fields[name] = val.trim();
   });
 
+  bb.on('file', (name, file, info) => {
+    filename = info.filename;
+    file.on('data', data => {
+      fileBuffer = Buffer.concat([fileBuffer, data]);
+    });
+  });
+
   bb.on('close', async () => {
-    const { department, title } = fields;
+    const { title, description } = fields;
 
-    if (!department || !title || !fileName) {
-      return res.status(400).send("❌ Missing fields");
+    if (!title || !filename || fileBuffer.length === 0) {
+      return res.status(400).send("❌ Missing title or file");
     }
-
-    const uniqueName = uuidv4() + "." + mime.extension(mimeType);
 
     // Upload to Supabase Storage
-    const { error: uploadErr } = await supabase.storage
+    const filePath = `ebooks/${Date.now()}_${filename}`;
+    const { data: storageData, error: uploadError } = await supabase.storage
       .from('library')
-      .upload(`pdfs/${uniqueName}`, fileBuffer, {
-        contentType: mimeType
+      .upload(filePath, fileBuffer, {
+        contentType: 'application/pdf'
       });
 
-    if (uploadErr) {
-      return res.status(500).send("❌ Upload Failed: " + uploadErr.message);
+    if (uploadError) {
+      return res.status(500).send("❌ Storage upload error: " + uploadError.message);
     }
 
-    // Insert metadata into Supabase table
-    const publicUrl = supabase.storage
+    const { data: publicURL } = supabase.storage
       .from('library')
-      .getPublicUrl(`pdfs/${uniqueName}`).data.publicUrl;
+      .getPublicUrl(filePath);
 
-    const { error: dbErr } = await supabase.from('pdfs').insert({
-      title,
-      department,
-      url: publicUrl,
-      file_name: fileName
-    });
+    // Save to Supabase Database (books table)
+    const { error: insertErr } = await supabase
+      .from('books')
+      .insert([{ title, description, file_url: publicURL.publicUrl }]);
 
-    if (dbErr) {
-      return res.status(500).send("❌ DB Insert Failed: " + dbErr.message);
+    if (insertErr) {
+      return res.status(500).send("❌ DB insert error: " + insertErr.message);
     }
 
-    return res.status(200).send("✅ PDF uploaded successfully");
+    res.status(200).send("✅ File uploaded successfully!");
   });
 
   req.pipe(bb);
