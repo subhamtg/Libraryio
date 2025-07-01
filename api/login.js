@@ -8,7 +8,7 @@ const supabase = createClient(
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
-    return res.status(405).send('Method Not Allowed');
+    return res.status(405).send("❌ Method Not Allowed");
   }
 
   const bb = busboy({ headers: req.headers });
@@ -19,17 +19,16 @@ module.exports = async (req, res) => {
   });
 
   bb.on('close', async () => {
-    const { username, email, password } = fields;
+    const { email, password } = fields;
 
-    if (!username || !email || !password) {
-      return res.status(400).send("❌ All fields required");
+    if (!email || !password) {
+      return res.status(400).send("❌ Email and password are required");
     }
 
     try {
       const { data: user, error } = await supabase
         .from('users')
         .select('name, password')
-        .eq('username', username)
         .eq('email', email)
         .single();
 
